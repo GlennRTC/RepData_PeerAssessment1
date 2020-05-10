@@ -1,0 +1,104 @@
+---
+title: "Analysis of Harmfull Events on USA"
+author: "Glenn R. Tomassi C."
+date: "5/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## SYNOPSIS
+
+This assignment analyzes severe weather events that happened in the United States regarding the public health and economic consequences occured. The U.S. National Oceanic and Atmospheric Administration’s (NOAA) storm database is used which records characteristics of major storms and weather events such as when and where they occur, as well as estimates of any fatalities, injuries, and property damage. The purpose of this analysis is to prevent such negative outcomes to the extent possible.
+
+### The two questions to be answered are
+
+1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+2. Across the United States, which types of events have the greatest economic consequences?
+
+
+## DATA PROCESSING
+
+### Libraries to be used:
+
+```{r libraries}
+library(dplyr)
+library(ggplot2)
+library(lattice)
+```
+
+### Donwload of the data and load into R:
+
+```{r donwload, cache = TRUE}
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile = "StormData.csv.bz2")
+StormData <- read.csv("StormData.csv.bz2")
+head(StormData, n = 6L)
+```
+
+## RESULTS
+
+### ***Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?***
+
+### The variables to be chosen according to question are:
+* ***EVTYPE***: Event types e.g. Tornado, Flood
+* ***FATALITIES***: Number of fatalities caused
+* ***INJURIES***: Number of injuries caused
+
+### Based on that,an Aggregation Table is generated:
+```{r health aggregation}
+StormDataAgg <- aggregate(FATALITIES~EVTYPE + INJURIES, StormData, sum, na.rm = TRUE)
+StormDataAgg$TOTALHEALTHDMG <- StormDataAgg$FATALITIES + StormDataAgg$INJURIES
+# ORDERING VALUES
+OrderedStormDat <- StormDataAgg[order(-StormDataAgg$TOTALHEALTHDMG),]
+StormMaxValue <- head(OrderedStormDat,3)
+```
+
+### The Resulting Plot:
+```{r plot1, echo = TRUE, cache = TRUE}
+ggplot(StormMaxValue, aes(EVTYPE,TOTALHEALTHDMG, fill = EVTYPE)) + 
+    geom_bar(position = "dodge",stat="identity") +
+    geom_text(aes(label=TOTALHEALTHDMG), vjust=-0.3, size=3.5) +
+    labs(x = "Event Type", y = "People Affected") +
+    labs(title = "Top 3 Most Harmful Event on Population Health") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0))
+```
+
+### Analysis:
+
+The plot shows that tornado is the most harmful event type regarding to population health (FATALITIES and INJURIES) in the United States.
+
+### ***Across the United States, which types of events have the greatest economic consequences?***
+
+### The variables to be chosen according to question are:
+* ***EVTYPE***: Event types e.g. Tornado, Flood
+* ***PROPDMG***: Number of fatalities caused
+* ***CROPDMG***: Number of injuries caused
+
+### Based on that,an Aggregation Table is generated:
+```{r economics aggregation}
+StormECAgg <- aggregate(PROPDMG~EVTYPE + CROPDMG, StormData, sum, na.rm = TRUE)
+StormECAgg$TOTALPROPDMG <- StormECAgg$PROPDMG + StormECAgg$CROPDMG
+# ORDERING VALUES
+OrderedStormECDat <- StormECAgg[order(-StormECAgg$TOTALPROPDMG),]
+StormECMaxValue <- head(OrderedStormECDat,6)
+```
+
+### The Resulting Plot:
+
+```{r plot2, echo = TRUE, cache = TRUE}
+ggplot(StormECMaxValue, aes(EVTYPE,TOTALPROPDMG, fill = EVTYPE)) + 
+    geom_bar(position = "dodge",stat="identity") +
+    geom_text(aes(label=TOTALPROPDMG), vjust=-0.3, size=3.5) +
+    labs(x = "Event Type", y = "People Affected") +
+    labs(title = "Top 6 Most Harmful Economic Events") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0))
+```
+
+### Analysis:
+
+The plot shows that tornados is the most harmful event type regarding to economics (Property and crop damages) in the United States.
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
